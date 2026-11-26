@@ -85,6 +85,27 @@ PASTE_BOT_TOKEN_2_HERE
 3. For YouTube, put your **TV OAuth refresh token** in `sources.youtube.clients.settings.TV.refreshToken` (an array). This keeps YouTube working — without it YouTube rate-limits the server IP quickly. Set `sources.youtube.getOAuthToken: false` once the token is in place.
 4. Start NodeLink on port `3000` (default password `youshallnotpass` — change it and match it in `.env`).
 
+## 📌 Getting started — pin the bot first
+
+The bot only works in the voice channel it is pinned to. Before anything else, pin it:
+
+1. **Join the voice channel** you want music in.
+2. **Pin the bot there** — type `pin` in the text channel (needs the Manage Server permission), or mention the bot to pin that specific one:
+   ```
+   @Bot pin
+   ```
+   The bot joins your voice channel and stays there 24/7, even after restarts.
+3. **That's it.** Now just type a command (no prefix) while you are in that voice channel:
+   ```
+   play <song name>
+   ```
+
+> ⚠️ **The bot only listens to people in its own voice channel.** If you are in a different voice channel — or not in voice at all — the bot ignores your commands. Each bot is pinned to one voice channel; to use another bot, join that bot's channel.
+
+- `unpin` — remove the bot from the channel.
+- `pinall` — pin every bot to the voice channel it is currently in.
+- `pin <channel>` — pin the bot to a different voice channel by name or mention.
+
 ## 🎮 Commands
 
 No prefix. Type the command in the voice channel's text channel while you are in that bot's pinned voice channel. Both Arabic and English work.
