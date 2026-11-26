@@ -9,13 +9,12 @@
 A self-hosted Discord music bot that plays from **YouTube by name**. No prefix — just type.
 One process runs **many bots** from a single tokens file, each pinned to its own voice channel.
 
-
 ## ✨ Features
 
 - **Play by name from YouTube** (`ytsearch`) — full video titles, no links needed
 - **YouTube → SoundCloud auto-fallback** — if YouTube blocks the server IP, the bot retries from SoundCloud automatically and returns to YouTube on its own when the block lifts
 - **SoundCloud & Spotify** — search and play by name, or paste a link (Spotify links resolve to the best YouTube audio match)
-- **No prefix** — bare Arabic & English commands (`شغل` / `play`, `تخطي` / `skip`, `القائمه` / `queue`…)
+- **No prefix** — bare commands (`play`, `skip`, `queue`…) in English and Arabic
 - **Multi-bot** — one `tokens.txt` runs many bots; each bot is pinned to its own voice channel and only answers users in that channel
 - **Audio filters with a dropdown picker** — bassboost, nightcore, vaporwave, 8D, karaoke, slow, speed, tremolo
 - **Queue, loop (on/off), volume, seek, shuffle, lyrics, history, playlists** (local `.txt` files)
@@ -92,77 +91,77 @@ No prefix. Type the command in the voice channel's text channel while you are in
 
 ### Music
 
-| Command | Arabic | Description |
-|---|---|---|
-| `play <name\|URL>` | شغل / ش | Play a song by name (YouTube) or a link |
-| `playnext <name\|URL>` | شغل بعدها | Play next in the queue |
-| `search <query>` | بحث | Search YouTube and pick a result |
-| `scsearch <query>` | ساوند | Search SoundCloud by name |
-| `spsearch <query>` | سبوتيفاي | Search Spotify by name |
-| `skip` | تخطي | Skip the current track |
-| `forceskip` | تخطي اجباري | Force-skip (DJ) |
-| `stop` | وقف | Stop and leave the voice channel |
-| `pause` | انتظار | Pause |
-| `resume` | كمل | Resume |
-| `queue [page]` | القائمه | Show the queue |
-| `nowplaying` | الان | Now playing |
-| `history [page]` | السجل | Playback history |
-| `remove <n\|ALL>` | احذف | Remove a track from the queue |
-| `forceremove <user>` | حذف اجباري | Remove a user's tracks (DJ) |
-| `skipto <n>` | انتقل | Jump to a queue position (DJ) |
-| `movetrack <from> <to>` | نقل | Move a track (DJ) |
-| `shuffle` | خلط | Shuffle the queue |
-| `volume [0-150]` | صوت | Set / show volume (DJ) |
-| `repeat [on\|off]` | تكرار | Loop the current track on/off (DJ) |
-| `seek [+/-] <time>` | تقديم | Seek within the track |
-| `previous` | السابق | Play the previous track |
-| `replay` | اعاده | Replay the current track |
-| `lyrics` | كلمات | Lyrics of the current track |
-| `filter [name]` | فلتر | Open the filter picker, or apply a filter directly |
-| `join` | ادخل | Join your voice channel |
-| `leave` | اطلع | Leave the voice channel |
-| `playlists` | بلاي ليست | Local playlists |
+| Command | Description |
+|---|---|
+| `play <name\|URL>` | Play a song by name (YouTube) or a link |
+| `playnext <name\|URL>` | Play next in the queue |
+| `search <query>` | Search YouTube and pick a result |
+| `scsearch <query>` | Search SoundCloud by name |
+| `spsearch <query>` | Search Spotify by name |
+| `skip` | Skip the current track |
+| `forceskip` | Force-skip (DJ) |
+| `stop` | Stop and leave the voice channel |
+| `pause` | Pause |
+| `resume` | Resume |
+| `queue [page]` | Show the queue |
+| `nowplaying` | Now playing |
+| `history [page]` | Playback history |
+| `remove <n\|ALL>` | Remove a track from the queue |
+| `forceremove <user>` | Remove a user's tracks (DJ) |
+| `skipto <n>` | Jump to a queue position (DJ) |
+| `movetrack <from> <to>` | Move a track (DJ) |
+| `shuffle` | Shuffle the queue |
+| `volume [0-150]` | Set / show volume (DJ) |
+| `repeat [on\|off]` | Loop the current track on/off (DJ) |
+| `seek [+/-] <time>` | Seek within the track |
+| `previous` | Play the previous track |
+| `replay` | Replay the current track |
+| `lyrics` | Lyrics of the current track |
+| `filter [name]` | Open the filter picker, or apply a filter directly |
+| `join` | Join your voice channel |
+| `leave` | Leave the voice channel |
+| `playlists` | Local playlists |
 
 ### Admin (Manage Server / DJ)
 
-| Command | Arabic | Description |
-|---|---|---|
-| `pin` | ثبت | Pin this bot to your voice channel (24/7) |
-| `unpin` | فك التثبيت | Unpin the bot |
-| `pinall` / `unpinall` | ثبت الكل / فك الكل | Pin / unpin all bots |
-| `bots` | البوتات | List all bots and their status |
-| `restart [all]` | ريستارت | Restart this bot, or all bots |
-| `settings` | الاعدادات | Server settings |
-| `setdj` | دي جي | Set the DJ role |
-| `settc` | روم الكتابه | Set the text channel |
-| `setvc` | روم الصوت | Set the voice channel |
-| `queuetype` | نوع القائمه | Queue behaviour |
-| `prefix` | بريفكس | Per-bot prefix |
+| Command | Description |
+|---|---|
+| `pin` | Pin this bot to your voice channel (24/7) |
+| `unpin` | Unpin the bot |
+| `pinall` / `unpinall` | Pin / unpin all bots |
+| `bots` | List all bots and their status |
+| `restart [all]` | Restart this bot, or all bots |
+| `settings` | Server settings |
+| `setdj` | Set the DJ role |
+| `settc` | Set the text channel |
+| `setvc` | Set the voice channel |
+| `queuetype` | Queue behaviour |
+| `prefix` | Per-bot prefix |
 
 ### Owner only
 
-| Command | Arabic | Description |
-|---|---|---|
-| `setname <name>` | اسم | Change the bot's username |
-| `setavatar <url>` | صوره | Change the bot's avatar |
-| `setgame <text>` | اللعبه | Change the bot's status |
-| `setstatus <text>` | الحاله | Change the bot's status text |
-| `shutdown` | اطفاء البوت | Shut the bot down |
-| `debug` | ديبج | Debug info |
-| `eval <code>` | — | Evaluate JS (dangerous — owner only) |
-| `clearchannel` | مسح الشات | Clear channel messages |
-| `autoplaylist` | بلاي ليست تلقائي | Auto-playlist settings |
-| `playlist` | انشاء بلاي ليست | Manage local playlists |
+| Command | Description |
+|---|---|
+| `setname <name>` | Change the bot's username |
+| `setavatar <url>` | Change the bot's avatar |
+| `setgame <text>` | Change the bot's status |
+| `setstatus <text>` | Change the bot's status text |
+| `shutdown` | Shut the bot down |
+| `debug` | Debug info |
+| `eval <code>` | Evaluate JS (dangerous — owner only) |
+| `clearchannel` | Clear channel messages |
+| `autoplaylist` | Auto-playlist settings |
+| `playlist` | Manage local playlists |
 
 ### General
 
-| Command | Arabic | Description |
-|---|---|---|
-| `help` | مساعده | Help, sent by DM (permission-filtered) |
-| `ping` | بنج | Bot latency |
-| `about` | عن البوت | About the bot |
+| Command | Description |
+|---|---|
+| `help` | Help, sent by DM (permission-filtered) |
+| `ping` | Bot latency |
+| `about` | About the bot |
 
-> **Mention rule:** by mention, only `restart` and `pin` work (`@Bot restart`, `@Bot ثبت`). Any other mentioned command is ignored.
+> **Mention rule:** by mention, only `restart` and `pin` work (`@Bot restart`). Any other mentioned command is ignored.
 > **Help privacy:** if your DMs are closed, the bot only posts a short notice in-channel — the help content is never posted publicly.
 
 ## 📁 Project Structure
