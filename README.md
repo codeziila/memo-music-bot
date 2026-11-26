@@ -30,6 +30,10 @@ One process runs **many bots** from a single tokens file, each pinned to its own
 
 ## 🚀 Installation
 
+**Prerequisites:** [Node.js v20+](https://nodejs.org/) and [Git](https://git-scm.com/downloads).
+
+### Linux / macOS
+
 ```bash
 git clone https://github.com/codeziila/memo-music-bot.git
 cd memo-music-bot
@@ -37,6 +41,39 @@ npm install
 cp .env.example .env          # fill in your values (see below)
 cp tokens.example.txt tokens.txt   # one Discord bot token per line
 npm start
+```
+
+To keep the bot running after you close the terminal (e.g. on a VPS):
+
+```bash
+nohup npm start > bot.log 2>&1 &
+```
+
+### Windows
+
+In **PowerShell** (`cp` works there):
+
+```powershell
+git clone https://github.com/codeziila/memo-music-bot.git
+cd memo-music-bot
+npm install
+cp .env.example .env          # fill in your values (see below)
+cp tokens.example.txt tokens.txt   # one Discord bot token per line
+npm start
+```
+
+In **Command Prompt (cmd)**, use `copy` instead of `cp`:
+
+```cmd
+copy .env.example .env
+copy tokens.example.txt tokens.txt
+```
+
+To keep the bot running in the background on Windows, use [PM2](https://pm2.keymetrics.io/):
+
+```powershell
+npm install -g pm2
+pm2 start npm --name "music-bot" -- start
 ```
 
 > Start NodeLink **before** the bot (see [NodeLink setup](#nodelink-setup)). The bot logs in, connects to the node, and each bot rejoins its pinned voice channel.
