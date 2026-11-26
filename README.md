@@ -47,7 +47,6 @@ npm start
 
 | Variable | Description | Required |
 |---|---|---|
-| `TOKENS` | Bot tokens, comma-separated — or use `tokens.txt` instead (recommended) | yes (one of the two) |
 | `LAVALINK_NODES` | Audio nodes, format `name\|host:port\|password\|secure`, separate multiple with `;` | yes |
 | `OWNER_IDS` | Discord user IDs of bot owners, comma-separated (Owner commands) | yes |
 | `DEFAULT_SEARCH` | Default search source (`ytsearch`) | no |
@@ -68,7 +67,7 @@ DEFAULT_VOLUME=100
 
 > ⚠️ **Change the NodeLink password** (`youshallnotpass` is only the well-known default). Never share your real `.env` or `tokens.txt` — anyone with a token controls that bot.
 
-### `tokens.txt`
+### `tokens.txt` — the only place for bot tokens
 
 One Discord bot token per line. Lines starting with `#` are ignored. One token = one bot.
 
