@@ -9,7 +9,6 @@
 A self-hosted Discord music bot that plays from **YouTube by name**. No prefix — just type.
 One process runs **many bots** from a single tokens file, each pinned to its own voice channel.
 
-> `شغل تملي معاك` → the bot in your voice channel starts playing. That's it.
 
 ## ✨ Features
 
