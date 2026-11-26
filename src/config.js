@@ -41,7 +41,7 @@ function loadTokens() {
 // الصيغة: name|host:port|password|secure — وافصل بين السيرفرات بـ ;
 // Format: name|host:port|password|secure — separate servers with ;
 function parseNodes() {
-  const raw = process.env.LAVALINK_NODES || 'main|localhost:3000|youshallnotpass|false';
+  const raw = process.env.LAVALINK_NODES || 'main|localhost:3000|your_nodelink_password|false';
   return raw
     .split(';')
     .map((s) => s.trim())
@@ -51,7 +51,7 @@ function parseNodes() {
       return {
         name: name || `node-${i + 1}`,
         url: url || 'localhost:3000',
-        auth: auth || 'youshallnotpass',
+        auth: auth || 'your_nodelink_password',
         secure: secure === 'true',
       };
     });

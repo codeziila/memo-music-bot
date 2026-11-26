@@ -97,12 +97,12 @@ pm2 start npm --name "music-bot" -- start
 Example:
 
 ```env
-LAVALINK_NODES=main|localhost:3000|youshallnotpass|false
+LAVALINK_NODES=main|localhost:3000|your_nodelink_password|false
 OWNER_IDS=your_discord_user_id
 DEFAULT_VOLUME=100
 ```
 
-> ⚠️ **Change the NodeLink password** (`youshallnotpass` is only the well-known default). Never share your real `.env` or `tokens.txt` — anyone with a token controls that bot.
+> ⚠️ **Change the NodeLink password from its default** — never run NodeLink with the default password. Never share your real `.env` or `tokens.txt` — anyone with a token controls that bot.
 
 ### `tokens.txt` — the only place for bot tokens
 
@@ -119,7 +119,7 @@ PASTE_BOT_TOKEN_2_HERE
 1. Install [NodeLink](https://github.com/PerformanC/NodeLink) (Node.js v20+).
 2. Copy its `config.default.ts` to `config.ts`.
 3. For YouTube, put your **TV OAuth refresh token** in `sources.youtube.clients.settings.TV.refreshToken` (an array). This keeps YouTube working — without it YouTube rate-limits the server IP quickly. Set `sources.youtube.getOAuthToken: false` once the token is in place.
-4. Start NodeLink on port `3000` (default password `youshallnotpass` — change it and match it in `.env`).
+4. Start NodeLink on port `3000` (change the default password and match it in `.env`).
 
 ## 📌 Getting started — pin the bot first
 
