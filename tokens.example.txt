@@ -1,0 +1,9 @@
+# انسخ الملف ده باسم tokens.txt وحط كل توكن في سطر.
+# Copy this file to tokens.txt, one token per line.
+# أي عدد من البوتات. السطور اللي بتبدأ بـ # بتتجاهل.
+# Any number of bots. Lines starting with # are ignored.
+# ⚠️ متشاركش التوكنات مع حد أبدًا — اللي معاه التوكن يقدر يتحكم في البوت.
+# Never share your tokens — anyone with a token controls that bot.
+TOKEN_BOT_1
+TOKEN_BOT_2
+TOKEN_BOT_3

@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables & secrets — NEVER commit these
+.env
+.env.local
+.env.*
+*.env
+tokens.txt
+# tokens.example.txt is a template and IS committed — the real tokens.txt stays ignored.
+
+# Runtime data (per-guild pins/settings, created at runtime)
+data/
+stats/
+logs/
+*.log
+bot.log
+
+# Local playlists (user-created) — keep only the shipped example
+Playlists/*
+!Playlists/example.txt
+
+# Local / generated files
+.moonlink
+src/utils/emojis.json
+
+# Build output
+dist/
+build/
+
+# Archives (may contain secrets)
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+# Temp
+tmp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Snapshot sync records (local only, never commit)
+*.muse-github-snapshot-sync.json
+*.muse-github-snapshot-sync.json.tmp-*

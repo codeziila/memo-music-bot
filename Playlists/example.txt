@@ -1,0 +1,6 @@
+# One song per line: a URL or a search query.
+# أغنية في كل سطر: لينك أو اسم أغنية.
+# Example playlist — edit it, or make your own with: playlist make <name>
+# مثال — عدّل عليه، أو اعمل قائمتك بأمر: playlist make <name>
+Amr Diab - Tamally Maak
+https://www.youtube.com/watch?v=60ItHLz5WEA
