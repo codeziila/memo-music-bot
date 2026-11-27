@@ -111,16 +111,20 @@ class GuildMusic {
       isSeekable: !!info.isSeekable,
       artwork: info.artworkUrl || null,
       requesterId,
-      // بدائل فشل التشغيل (بحث بالاسم بس): نتائج البحث اللي بعدها +
-      // البحث الأصلي (عشان نجرّب سبوتيفاي) + هل جرّبنا سبوتيفاي ولا لأ.
-      // فاضية افتراضيًا، و playQuery بيملاها لأول نتيجة بحث.
-      // Playback-failure fallbacks (name searches only): the next search
-      // results + the original query (for a Spotify retry) + whether
-      // Spotify was already tried. Empty by default; playQuery fills
-      // them for the top search result.
+      // بدائل فشل التشغيل: نتائج البحث اللي بعدها + البحث الأصلي
+      // (عشان نجرّب يوتيوب من جديد وسبوتيفاي) + هل جرّبنا كل مصدر ولا لأ.
+      // فاضية افتراضيًا، و playQuery بيملاها لأول نتيجة بحث بالاسم؛
+      // أغاني البلاي ليست واللينكات بتستخدم عنوان الأغنية واسم المغني
+      // كبحث لما تفشل.
+      // Playback-failure fallbacks: the next search results + the
+      // original query (for a fresh YouTube search and a Spotify retry)
+      // + whether each source was already tried. Empty by default;
+      // playQuery fills them for the top name-search result; playlist
+      // and link items fall back to their own title + author as a query.
       alternatives: [],
       searchQuery: null,
       triedSpotify: false,
+      triedYoutubeSearch: false,
     };
   }
 
@@ -261,19 +265,22 @@ class GuildMusic {
       if (fb) {
         return this.startTrack(fb.item);
       }
-      this.sendText(this.t.trackError(truncate(item.title, 80)));
+      // مفيش بديل نفع — عدّي للي بعدها في صمت (من غير رسالة خطأ).
+      // No fallback worked — move on silently (no error message).
       return this.next();
     }
   }
 
   // لما أغنية تفشل في التحميل (probe error / loadFailed): جرّب البدائل
-  // بالترتيب — نتيجة البحث اللي بعدها من يوتيوب، وبعدين نفس الأغنية
+  // بالترتيب — نتيجة البحث اللي بعدها من يوتيوب، وبعدين بحث يوتيوب
+  // جديد بنفس الأغنية (للبلاي ليست واللينكات)، وبعدين نفس الأغنية
   // من سبوتيفاي — قبل ما نستسلم ونروح للي بعدها في القائمة.
   // بترجّع { item, source } ('youtube' | 'spotify') أو null لو مفيش بديل.
   // When a track fails to load (probe error / loadFailed), try the
-  // fallbacks in order — the next YouTube search result, then the same
-  // song from Spotify — before giving up and moving to the next queue item.
-  // Returns { item, source } ('youtube' | 'spotify') or null.
+  // fallbacks in order — the next YouTube search result, then a fresh
+  // YouTube search for the same song (playlist/link items), then the
+  // same song from Spotify — before giving up and moving to the next
+  // queue item. Returns { item, source } ('youtube' | 'spotify') or null.
   async tryFallback(failedItem) {
     if (!failedItem) return null;
     // 1) نتيجة يوتيوب اللي بعدها (وبتاخد معاها باقي البدائل والبحث).
@@ -283,19 +290,53 @@ class GuildMusic {
       next.alternatives = failedItem.alternatives;
       next.searchQuery = failedItem.searchQuery;
       next.triedSpotify = failedItem.triedSpotify;
+      next.triedYoutubeSearch = failedItem.triedYoutubeSearch;
       return { item: next, source: 'youtube' };
     }
-    // 2) نفس الأغنية من سبوتيفاي (مرة واحدة بس لكل عنصر).
-    // 2) The same song from Spotify (once per item).
-    if (failedItem.searchQuery && !failedItem.triedSpotify) {
+    // البحث اللي هنجرّب بيه: البحث الأصلي (بحث بالاسم) أو عنوان الأغنية
+    // + اسم المغني (بلاي ليست / لينك — مفيش بحث أصلي متخزّن).
+    // The query to retry with: the original search (name searches) or
+    // the track's own title + author (playlist / link — no stored query).
+    const q = failedItem.searchQuery
+      || [failedItem.title, failedItem.author].filter(Boolean).join(' ');
+    // 2) بحث يوتيوب جديد بنفس الأغنية — بس للبلاي ليست واللينكات
+    // (بحث بالاسم مشى بدايله المخزّنة في خطوة 1 خلاص). بناخد أول
+    // نتيجة ونشيل باقي النتائج كبدائل للي بعدها.
+    // 2) A fresh YouTube search for the same song — only for playlist
+    // and link items (name searches already walked their stored
+    // alternatives in step 1). Take the first result, keep the rest
+    // as alternatives for the next retry.
+    if (!failedItem.searchQuery && q && !failedItem.triedYoutubeSearch) {
+      failedItem.triedYoutubeSearch = true;
+      try {
+        const { resolveYoutubeTracks } = require('./playback');
+        const results = await resolveYoutubeTracks(this.bot, q, 3);
+        const list = (results || []).filter((t) => t && t.info && t.encoded);
+        if (list.length) {
+          const [first, ...rest] = list;
+          const item = this.makeItem(first, failedItem.requesterId);
+          item.alternatives = rest.map((t) => this.makeItem(t, failedItem.requesterId));
+          item.searchQuery = q;
+          item.triedSpotify = failedItem.triedSpotify;
+          item.triedYoutubeSearch = true;
+          return { item, source: 'youtube' };
+        }
+      } catch {
+        /* fall through — no YouTube re-search fallback */
+      }
+    }
+    // 3) نفس الأغنية من سبوتيفاي (مرة واحدة بس لكل عنصر).
+    // 3) The same song from Spotify (once per item).
+    if (q && !failedItem.triedSpotify) {
       failedItem.triedSpotify = true;
       try {
         const { resolveSpotifyTrack } = require('./playback');
-        const track = await resolveSpotifyTrack(this.bot, failedItem.searchQuery);
+        const track = await resolveSpotifyTrack(this.bot, q);
         if (track) {
           const item = this.makeItem(track, failedItem.requesterId);
-          item.searchQuery = failedItem.searchQuery;
+          item.searchQuery = q;
           item.triedSpotify = true;
+          item.triedYoutubeSearch = failedItem.triedYoutubeSearch;
           return { item, source: 'spotify' };
         }
       } catch {
@@ -326,9 +367,8 @@ class GuildMusic {
         // A fallback worked — play it silently.
         return this.startTrack(fb.item);
       }
-      // مفيش بديل نفع — بلّغ مرة واحدة وروح للي بعدها.
-      // No fallback worked — report once and move on.
-      this.sendText(this.t.trackError(truncate(finished.title, 80)));
+      // مفيش بديل نفع — عدّي للي بعدها في صمت (من غير رسالة خطأ).
+      // No fallback worked — move on silently (no error message).
       return this.next();
     }
     if (finished) {

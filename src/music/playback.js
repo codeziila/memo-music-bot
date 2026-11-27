@@ -153,6 +153,22 @@ async function resolveSpotifyTrack(bot, query) {
   }
 }
 
+// دور على يوتيوب لنفس الأغنية — بيرجع لستة تراكات (لحد count) أو [].
+// (عشان أغنية بلاي ليست فشلت نجرّب نسخة تانية من يوتيوب.)
+// Search YouTube for the same song — returns up to `count` tracks or [].
+// (So a failed playlist track can retry a different YouTube upload.)
+async function resolveYoutubeTracks(bot, query, count = 3) {
+  try {
+    const res = await resolveIdentifier(bot, `ytsearch:${query}`);
+    if (!res) return [];
+    if (res.loadType === 'search' && Array.isArray(res.data)) return res.data.slice(0, count);
+    if (res.loadType === 'track') return [res.data];
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 // ---------- كشف حظر الـ IP بتاع يوتيوب — Detecting a YouTube IP block ----------
 // لما يوتيوب يحظر الـ IP بتاع الـ VPS (429 / "سجّل دخول عشان تتأكد إنك مش
 // بوت" / rate limit)، NodeLink بيرجّع loadType 'error' أو بيرمي استثناء
@@ -443,6 +459,7 @@ module.exports = {
   playResolved,
   playPlaylistByName,
   resolveSpotifyTrack,
+  resolveYoutubeTracks,
   fetchLyrics,
   isIpBlockResult,
   isIpBlockError,
