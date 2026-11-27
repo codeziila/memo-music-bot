@@ -87,8 +87,8 @@ module.exports = {
     }
 
     // --- القائمة الكاملة (جزئين) — The full list (2 parts) ---
-    const MUSIC_EMOJI = '<:music1:1575256281277534308>';
-    const HELP_EMOJI = '<:music2:1575256198654201897>';
+    const MUSIC_EMOJI = '<:music1:1575843561285361825>';
+    const HELP_EMOJI = '<:music2:1575843586338062386>';
     const name = ctx.bot.client.user.username;
     const line = (c) => `\`${c.name}${c.args ? ` ${c.args}` : ''}\` - ${c.help}`;
     const section = (g, label, emoji) => {

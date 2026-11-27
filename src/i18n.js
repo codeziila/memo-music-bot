@@ -96,9 +96,9 @@ const ar = {
   filterUsage: (list) => `اختار فلتر: ${list}\nأو \`فلتر الغاء\` عشان ترجع الصوت عادي.`,
   filterSet: (name) => `🎛️ اتفعل فلتر **${name}**.`,
   filterReset: '🎛️ اتشالت كل الفلاتر.',
-  filterTitle: '<:music1:1575256281277534308> فلاتر الصوت',
+  filterTitle: '<:music1:1575843561285361825> فلاتر الصوت',
   filterPick: 'اختار فلتر…',
-  filterCurrent: (name) => `<:music3:1575256248201515089> الفلتر الحالي: **${name}**`,
+  filterCurrent: (name) => `<:music3:1575843610270634064> الفلتر الحالي: **${name}**`,
   filterNone: 'بدون فلتر',
   filterOff: 'إيقاف الفلتر',
 
@@ -217,9 +217,9 @@ const en = {
   filterUsage: (list) => `Pick a filter: ${list}\nOr \`filter reset\` to go back to normal.`,
   filterSet: (name) => `🎛️ Filter **${name}** enabled.`,
   filterReset: '🎛️ All filters removed.',
-  filterTitle: '<:music1:1575256281277534308> Audio Filters',
+  filterTitle: '<:music1:1575843561285361825> Audio Filters',
   filterPick: 'Choose a filter…',
-  filterCurrent: (name) => `<:music3:1575256248201515089> Current filter: **${name}**`,
+  filterCurrent: (name) => `<:music3:1575843610270634064> Current filter: **${name}**`,
   filterNone: 'No filter',
   filterOff: 'Turn off filter',
 

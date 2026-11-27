@@ -29,6 +29,6 @@ module.exports = {
     const title = truncate(cur.title, 200).replace(/\*/g, '\\*');
     const who = cur.requesterId ? `<@${cur.requesterId}>` : `<@${ctx.author.id}>`;
     await music.skip();
-    return ctx.send({ content: `<:music1:1575256281277534308> Skipped ${title} - ${who}` });
+    return ctx.send({ content: `<:music1:1575843561285361825> Skipped ${title} - ${who}` });
   },
 };

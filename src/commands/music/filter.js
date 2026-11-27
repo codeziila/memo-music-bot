@@ -26,9 +26,9 @@ const i18n = require('../../i18n');
 // The bot's sky emojis (music1/2/3) — used in the Dropdown and the
 // embed instead of plain Unicode emojis, for the bot's sky identity.
 const SKY = {
-  music1: { id: '1575256281277534308', name: 'music1' },
-  music2: { id: '1575256198654201897', name: 'music2' },
-  music3: { id: '1575256248201515089', name: 'music3' },
+  music1: { id: '1575843561285361825', name: 'music1' },
+  music2: { id: '1575843586338062386', name: 'music2' },
+  music3: { id: '1575843610270634064', name: 'music3' },
 };
 
 // بيانات العرض لكل فلتر (إيموجي سكاي + وصف مختصر).
