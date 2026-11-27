@@ -83,6 +83,12 @@ function pickBot(bots, guildId, targetVc, command) {
   const pinnedHere = bots.find((b) => pins.get(b.id, guildId)?.channelId === targetVc);
   if (pinnedHere) return pinnedHere;
   if (!command.summon) return null;
+  // قاعدة المستخدم: البوت ميردّش غير لو متثبّت في رومك أو لو ناديته بـ come/pin.
+  // User rule: the bot only answers if it's pinned to your channel or you
+  // explicitly summoned it with come (join) / pin. play/search/etc. must NOT
+  // drag a free (unpinned) bot into your channel on their own — they stay
+  // silent (BUSY) until a bot is pinned there or summoned with come/pin.
+  if (command.name !== 'join' && command.name !== 'pin') return 'BUSY';
   const free = bots.find((b) => !b.targetChannel(guildId) && !pins.get(b.id, guildId));
   return free || 'BUSY';
 }
