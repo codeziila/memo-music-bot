@@ -136,6 +136,23 @@ async function resolveIdentifier(bot, identifier) {
   return node.rest.resolve(identifier);
 }
 
+// جرّب سبوتيفاي لنفس البحث — بيرجع أول تراك أو null لو مفيش نتيجة
+// أو حصل أي إيرور. (NodeLink بيحلّ تراكات سبوتيفاي لأقرب نسخة صوت.)
+// Try Spotify for the same query — returns the first track or null when
+// there is no result or any error. (NodeLink resolves Spotify tracks to
+// the closest audio match.)
+async function resolveSpotifyTrack(bot, query) {
+  try {
+    const res = await resolveIdentifier(bot, `spsearch:${query}`);
+    if (!res) return null;
+    if (res.loadType === 'search' && res.data?.length) return res.data[0];
+    if (res.loadType === 'track') return res.data;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- كشف حظر الـ IP بتاع يوتيوب — Detecting a YouTube IP block ----------
 // لما يوتيوب يحظر الـ IP بتاع الـ VPS (429 / "سجّل دخول عشان تتأكد إنك مش
 // بوت" / rate limit)، NodeLink بيرجّع loadType 'error' أو بيرمي استثناء
@@ -256,7 +273,7 @@ const PLAY_HELP = `${config.emojis.music2} Play commands.\n**\`\`/play [Song tit
 // carry their data nested under tr.info, so using the raw object leaves
 // item.title/item.length undefined and Now Playing shows an empty title.
 // makeItem flattens them (and keeps the encoded string for playback).
-async function enqueueTracks(ctx, tracks, { front = false, playlistName = null, usedFallback = false } = {}) {
+async function enqueueTracks(ctx, tracks, { front = false, playlistName = null, usedFallback = false, searchQuery = null, alternatives = null } = {}) {
   const { music } = ctx;
   const space = config.maxQueue - music.queue.length;
   if (space <= 0) {
@@ -264,6 +281,16 @@ async function enqueueTracks(ctx, tracks, { front = false, playlistName = null, 
     return false;
   }
   const items = tracks.slice(0, space).map((tr) => music.makeItem(tr, ctx.author.id));
+  // بدائل فشل التشغيل (بحث بالاسم بس): نتائج البحث اللي بعدها +
+  // البحث الأصلي (عشان نجرّب سبوتيفاي). بتتعلّق على أول عنصر بس.
+  // Playback-failure fallbacks (name searches only): the next search
+  // results + the original query (for a Spotify retry). Attached to
+  // the first item only.
+  if (items.length && (searchQuery || (alternatives && alternatives.length))) {
+    items[0].searchQuery = searchQuery || null;
+    items[0].alternatives = (alternatives || []).map((tr) => music.makeItem(tr, ctx.author.id));
+    items[0].triedSpotify = false;
+  }
   if (!(await ensureConnected(ctx))) return false;
   const wasIdle = !music.current;
   music.add(items, front);
@@ -300,13 +327,13 @@ async function enqueueTracks(ctx, tracks, { front = false, playlistName = null, 
 
 // شغّل نتيجة resolve جاهزة (المنطق المشترك بعد ما نجيب التراكات).
 // Play an already-resolved result (shared logic after resolving tracks).
-async function playResolved(ctx, res, front, usedFallback) {
+async function playResolved(ctx, res, front, usedFallback, opts = {}) {
   if (!res || res.loadType === 'empty') return ctx.jerr('No results found.');
   if (res.loadType === 'error') return ctx.jerr(`Failed to load the track${res.data?.message ? `: ${res.data.message}` : '.'}`);
   if (res.loadType === 'track') return enqueueTracks(ctx, [res.data], { front, usedFallback });
   if (res.loadType === 'search') {
     if (!res.data?.length) return ctx.jerr('No results found.');
-    return enqueueTracks(ctx, [res.data[0]], { front, usedFallback });
+    return enqueueTracks(ctx, [res.data[0]], { front, usedFallback, searchQuery: opts.searchQuery || null, alternatives: opts.alternatives || null });
   }
   if (res.loadType === 'playlist') {
     const tracks = res.data?.tracks || [];
@@ -375,7 +402,18 @@ async function playQuery(ctx, query, front = false) {
       usedFallback = 'notfound';
     }
   }
-  return playResolved(ctx, res, front, usedFallback);
+  // بحث بالاسم: احتفظ بنتائج البحث اللي بعدها + البحث الأصلي، عشان
+  // لو أول نتيجة فشلت في التحميل وقت التشغيل (probe error) البوت
+  // يجرّب اللي بعدها، وبعدين نفس الأغنية من سبوتيفاي.
+  // Name search: keep the next search results + the original query, so
+  // if the top result fails to LOAD at playback time (probe error) the
+  // bot tries the next one, then the same song from Spotify.
+  const opts = {};
+  if (res && res.loadType === 'search' && Array.isArray(res.data) && res.data.length > 1) {
+    opts.searchQuery = query;
+    opts.alternatives = res.data.slice(1, 3);
+  }
+  return playResolved(ctx, res, front, usedFallback, opts);
 }
 
 // شغّل بلاي ليست محلية بالاسم (من فولدر Playlists).
@@ -404,6 +442,7 @@ module.exports = {
   playQuery,
   playResolved,
   playPlaylistByName,
+  resolveSpotifyTrack,
   fetchLyrics,
   isIpBlockResult,
   isIpBlockError,

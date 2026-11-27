@@ -111,6 +111,16 @@ class GuildMusic {
       isSeekable: !!info.isSeekable,
       artwork: info.artworkUrl || null,
       requesterId,
+      // بدائل فشل التشغيل (بحث بالاسم بس): نتائج البحث اللي بعدها +
+      // البحث الأصلي (عشان نجرّب سبوتيفاي) + هل جرّبنا سبوتيفاي ولا لأ.
+      // فاضية افتراضيًا، و playQuery بيملاها لأول نتيجة بحث.
+      // Playback-failure fallbacks (name searches only): the next search
+      // results + the original query (for a Spotify retry) + whether
+      // Spotify was already tried. Empty by default; playQuery fills
+      // them for the top search result.
+      alternatives: [],
+      searchQuery: null,
+      triedSpotify: false,
     };
   }
 
@@ -185,7 +195,12 @@ class GuildMusic {
     player.on('exception', (data) => {
       const msg = data?.exception?.message;
       this.bot.log('track exception:', msg);
-      this.sendText(this.t.trackError(msg ? truncate(msg, 150) : ''));
+      // مفيش رسالة للمستخدم هنا — حدث الـ 'end' اللي جاي (loadFailed)
+      // هو اللي بيبلّغ النتيجة من onEnd (ملاحظة fallback أو خطأ واحد)،
+      // عشان المستخدم ميشوفش خطأ مخيف وبعدين الأغنية تشتغل من سبوتيفاي.
+      // No user message here — the following 'end' (loadFailed) reports
+      // the outcome from onEnd (fallback note or one error), so the user
+      // never sees a scary error followed by a successful Spotify fallback.
     });
     player.on('stuck', () => {
       this.bot.log('track stuck, skipping');
@@ -237,9 +252,64 @@ class GuildMusic {
     } catch (e) {
       this.bot.log('playTrack failed:', e.message);
       this.current = null;
+      // playTrack نفسه فشل: جرّب البدائل (نتيجة يوتيوب اللي بعدها،
+      // وبعدين سبوتيفاي) قبل ما نستسلم ونروح للي بعدها.
+      // playTrack itself failed: try the fallbacks before giving up.
+      const fb = await this.tryFallback(item).catch(() => null);
+      if (fb) {
+        this.sendText(this.fallbackNote(fb.source));
+        return this.startTrack(fb.item);
+      }
       this.sendText(this.t.trackError(truncate(item.title, 80)));
       return this.next();
     }
+  }
+
+  // رسالة لما بديل يشتغل بعد فشل الأغنية الأصلية.
+  // Note sent when a fallback plays after the original track failed.
+  fallbackNote(source) {
+    return source === 'spotify'
+      ? '⚠️ YouTube couldn\'t play this track — playing it from Spotify instead.'
+      : '⚠️ That video couldn\'t play — trying the next result.';
+  }
+
+  // لما أغنية تفشل في التحميل (probe error / loadFailed): جرّب البدائل
+  // بالترتيب — نتيجة البحث اللي بعدها من يوتيوب، وبعدين نفس الأغنية
+  // من سبوتيفاي — قبل ما نستسلم ونروح للي بعدها في القائمة.
+  // بترجّع { item, source } ('youtube' | 'spotify') أو null لو مفيش بديل.
+  // When a track fails to load (probe error / loadFailed), try the
+  // fallbacks in order — the next YouTube search result, then the same
+  // song from Spotify — before giving up and moving to the next queue item.
+  // Returns { item, source } ('youtube' | 'spotify') or null.
+  async tryFallback(failedItem) {
+    if (!failedItem) return null;
+    // 1) نتيجة يوتيوب اللي بعدها (وبتاخد معاها باقي البدائل والبحث).
+    // 1) The next YouTube search result (carrying the rest along).
+    if (failedItem.alternatives && failedItem.alternatives.length) {
+      const next = failedItem.alternatives.shift();
+      next.alternatives = failedItem.alternatives;
+      next.searchQuery = failedItem.searchQuery;
+      next.triedSpotify = failedItem.triedSpotify;
+      return { item: next, source: 'youtube' };
+    }
+    // 2) نفس الأغنية من سبوتيفاي (مرة واحدة بس لكل عنصر).
+    // 2) The same song from Spotify (once per item).
+    if (failedItem.searchQuery && !failedItem.triedSpotify) {
+      failedItem.triedSpotify = true;
+      try {
+        const { resolveSpotifyTrack } = require('./playback');
+        const track = await resolveSpotifyTrack(this.bot, failedItem.searchQuery);
+        if (track) {
+          const item = this.makeItem(track, failedItem.requesterId);
+          item.searchQuery = failedItem.searchQuery;
+          item.triedSpotify = true;
+          return { item, source: 'spotify' };
+        }
+      } catch {
+        /* fall through — no Spotify fallback */
+      }
+    }
+    return null;
   }
 
   // لما أغنية تخلص: لو التكرار على الأغنية، عيدها. لو على القائمة،
@@ -251,6 +321,22 @@ class GuildMusic {
     if (reason === 'replaced' || reason === 'cleanup') return;
     const finished = this.current;
     this.current = null;
+    // فشل تحميل الأغنية (probe error / loadFailed): جرّب البدائل
+    // (نتيجة يوتيوب اللي بعدها، وبعدين سبوتيفاي) قبل ما نروح للي بعدها.
+    // الأغنية الفاشلة مبتتحطش في السجل ولا بترجع في التكرار.
+    // Track failed to load: try the fallbacks before moving on.
+    // A failed track is not added to history or re-queued on loop.
+    if (finished && reason === 'loadFailed') {
+      const fb = await this.tryFallback(finished).catch(() => null);
+      if (fb) {
+        this.sendText(this.fallbackNote(fb.source));
+        return this.startTrack(fb.item);
+      }
+      // مفيش بديل نفع — بلّغ مرة واحدة وروح للي بعدها.
+      // No fallback worked — report once and move on.
+      this.sendText(this.t.trackError(truncate(finished.title, 80)));
+      return this.next();
+    }
     if (finished) {
       if (this.loop === 'track' && reason === 'finished') {
         return this.startTrack(finished);
