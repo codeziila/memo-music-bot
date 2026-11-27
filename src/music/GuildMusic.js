@@ -484,7 +484,7 @@ class GuildMusic {
     const line = item.isStream
       ? `🔴 LIVE ${volIcon} [${this.volume}]`
       : `${paused ? '▶️' : '⏸️'} ${progressBar(pos, item.length, 20)} [${formatDuration(pos)}/${formatTotal(item.length)}] ${volIcon} [${this.volume}]`;
-    embed.setDescription(`<:music3:1575843610270634064> ${title}\n${line}`);
+    embed.setDescription(`${config.emojis.music3} ${title}\n${line}`);
     const me = this.bot.client.user;
     if (me) embed.setFooter({ text: me.username, iconURL: me.displayAvatarURL() });
     return embed;

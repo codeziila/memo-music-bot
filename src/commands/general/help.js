@@ -16,6 +16,7 @@
 // ============================================================
 const { version: botVersion } = require('../../../package.json');
 const { isOwner, isAdmin, isAdministrator, isDJ } = require('../../permissions');
+const { config } = require('../../config');
 
 module.exports = {
   name: 'help',
@@ -87,8 +88,8 @@ module.exports = {
     }
 
     // --- القائمة الكاملة (جزئين) — The full list (2 parts) ---
-    const MUSIC_EMOJI = '<:music1:1575843561285361825>';
-    const HELP_EMOJI = '<:music2:1575843586338062386>';
+    const MUSIC_EMOJI = config.emojis.music1;
+    const HELP_EMOJI = config.emojis.music2;
     const name = ctx.bot.client.user.username;
     const line = (c) => `\`${c.name}${c.args ? ` ${c.args}` : ''}\` - ${c.help}`;
     const section = (g, label, emoji) => {

@@ -15,6 +15,7 @@
 //  the bot leave the channel.
 // ============================================================
 const embeds = require('../../utils/embeds');
+const { config } = require('../../config');
 
 module.exports = {
   name: 'stop',
@@ -29,6 +30,6 @@ module.exports = {
   async run(ctx) {
     if (!ctx.music.alive) return ctx.jerr('There is no music playing right now!');
     await ctx.music.stop();
-    return ctx.send({ embeds: [embeds.info('<:music2:1575843586338062386> Stopped the music and cleared the queue.')] });
+    return ctx.send({ embeds: [embeds.info(`${config.emojis.music2} Stopped the music and cleared the queue.`)] });
   },
 };

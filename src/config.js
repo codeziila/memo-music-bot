@@ -82,6 +82,35 @@ function defaultBotPrefix(index) {
   return index === 0 ? '!' : `!${index + 1}`;
 }
 
+// ---------- الإيموجيز — Custom sky emojis ----------
+// آيديهات إيموجيز Sky (music1/2/3) — بتتقري من .env
+// (EMOJI_MUSIC1_ID و EMOJI_MUSIC2_ID و EMOJI_MUSIC3_ID).
+// الافتراضي هو آيديهات سيرفر Mimo نفسه. لو هتشغّل البوت على سيرفر
+// تاني، ارفع الإيموجيز على سيرفرك وحط آيديهاتهم في .env —
+// وإلا الإيموجيز هتظهر مكسورة عند اللي بيستخدم البوت.
+// Sky emoji IDs (music1/2/3) — read from .env (EMOJI_MUSIC1_ID,
+// EMOJI_MUSIC2_ID, EMOJI_MUSIC3_ID), defaulting to Mimo's own
+// server emoji IDs. If you run the bot on your own server, upload
+// the emojis there and put their IDs in .env — otherwise the
+// emojis will render broken for your users.
+const emojiId = (envName, fallback) => {
+  const v = (process.env[envName] || '').trim();
+  return /^\d+$/.test(v) ? v : fallback;
+};
+const emojiIds = {
+  music1: emojiId('EMOJI_MUSIC1_ID', '1575843561285361825'),
+  music2: emojiId('EMOJI_MUSIC2_ID', '1575843586338062386'),
+  music3: emojiId('EMOJI_MUSIC3_ID', '1575843610270634064'),
+};
+const emojis = {
+  music1: `<:music1:${emojiIds.music1}>`,
+  music2: `<:music2:${emojiIds.music2}>`,
+  music3: `<:music3:${emojiIds.music3}>`,
+  music1Id: emojiIds.music1,
+  music2Id: emojiIds.music2,
+  music3Id: emojiIds.music3,
+};
+
 // ---------- الإعدادات — The settings object ----------
 const config = {
   // سيرفرات الصوت (NodeLink) — Audio servers (NodeLink)
@@ -112,6 +141,11 @@ const config = {
   // never read from .env, so a stale value there can't break the look.
   embedColor: '#7EA6D8',
   errorColor: '#7EA6D8',
+  // إيموجيز Sky (music1/2/3) — من .env (EMOJI_MUSIC*_ID)، والافتراضي
+  // آيديهات سيرفر Mimo. شوف قسم الإيموجيز فوق.
+  // Sky emojis (music1/2/3) — from .env (EMOJI_MUSIC*_ID), defaulting
+  // to Mimo's server emoji IDs. See the emojis section above.
+  emojis,
   // الحالة اللي بتظهر عند التشغيل — متثبّتة "By Memo" ومش بتتقري من .env.
   // Startup status — hardcoded to "By Memo", never read from .env.
   status: 'By Memo',

@@ -20,15 +20,18 @@ const { ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const { FILTERS, NAMES_AR, resolveFilter } = require('../../music/filters');
 const embeds = require('../../utils/embeds');
 const i18n = require('../../i18n');
+const { config } = require('../../config');
 
 // إيموجيات السكاي بتاعت البوت (music1/2/3) — بتتحط في القائمة المنسدلة
 // والإمبيديد بدل الإيموجيات العادية، عشان الشكل يبقى بهوية البوت.
+// آيديهاتهم من .env (EMOJI_MUSIC*_ID) — شوف config.js.
 // The bot's sky emojis (music1/2/3) — used in the Dropdown and the
 // embed instead of plain Unicode emojis, for the bot's sky identity.
+// Their IDs come from .env (EMOJI_MUSIC*_ID) — see config.js.
 const SKY = {
-  music1: { id: '1575843561285361825', name: 'music1' },
-  music2: { id: '1575843586338062386', name: 'music2' },
-  music3: { id: '1575843610270634064', name: 'music3' },
+  music1: { id: config.emojis.music1Id, name: 'music1' },
+  music2: { id: config.emojis.music2Id, name: 'music2' },
+  music3: { id: config.emojis.music3Id, name: 'music3' },
 };
 
 // بيانات العرض لكل فلتر (إيموجي سكاي + وصف مختصر).

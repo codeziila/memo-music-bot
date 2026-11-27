@@ -86,6 +86,7 @@ pm2 start npm --name "music-bot" -- start
 |---|---|---|
 | `LAVALINK_NODES` | Audio nodes, format `name\|host:port\|password\|secure`, separate multiple with `;` | yes |
 | `OWNER_IDS` | Discord user IDs of bot owners, comma-separated (Owner commands) | yes |
+| `EMOJI_MUSIC1_ID` / `EMOJI_MUSIC2_ID` / `EMOJI_MUSIC3_ID` | Custom sky emoji IDs (`music1`/`music2`/`music3`) — upload the emojis to your own Discord server and put their IDs here, or they render broken (defaults are the author's own server IDs) | no |
 | `DEFAULT_SEARCH` | Default search source (`ytsearch`) | no |
 | `DEFAULT_VOLUME` | Default volume, 0–150 (default `100`) | no |
 | `MAX_VOLUME` | Max allowed volume (default `150`) | no |
@@ -253,7 +254,7 @@ memo-music-bot/
 - **Music doesn't play** → is NodeLink running? Check `LAVALINK_NODES` (host, port `3000`, password) and that the node shows as connected in the bot log.
 - **YouTube blocked / 429** → the bot falls back to SoundCloud automatically. To fix YouTube, refresh the YouTube TV OAuth token in NodeLink's `config.ts`.
 - **High latency (`ping` shows 300ms+)** → usually the host, not the bot: check the server's CPU load. Voice/music is a separate connection and is not affected by gateway latency.
-- **Filter picker emojis don't render** → the picker uses custom Discord emojis (`music1` / `music2` / `music3`). Replace their IDs in `src/commands/music/filter.js` with your own server's emoji IDs. The picker still works without them.
+- **Filter picker emojis don't render** → the picker uses custom Discord emojis (`music1` / `music2` / `music3`). Upload them to your own server and put their IDs in `.env` (`EMOJI_MUSIC1_ID`, `EMOJI_MUSIC2_ID`, `EMOJI_MUSIC3_ID`). The picker still works without them.
 
 ## 🤝 Contributing
 

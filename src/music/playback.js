@@ -224,24 +224,26 @@ function lunaDuration(ms) {
 }
 
 // رد الـ play — سطر واحد (بيتلف لو طويل):
-//   <:music1:1575843561285361825> **<العنوان الكامل>** added to the queue ( 04:20 ) - at position 1
+//   <:music1:ID> **<العنوان الكامل>** added to the queue ( 04:20 ) - at position 1
+//   (الإيموجي من config.emojis.music1 — آيديه من .env)
 // النص اللي المستخدم كتبه مش بيتعرض (العنوان الكامل من يوتيوب بس).
 // النجوم جوه العنوان بتتهرب عشان متكسرش الـ bold.
 // Play reply — ONE line (wraps naturally if long):
-//   <:music1:1575843561285361825> **<full title>** added to the queue ( 04:20 ) - at position 1
+//   <:music1:ID> **<full title>** added to the queue ( 04:20 ) - at position 1
+//   (emoji from config.emojis.music1 — ID from .env)
 // The user's typed text is NOT echoed (only the full YouTube title).
 // Asterisks inside a title are escaped so they can't break the bold.
 function lunaAddLine(item, position) {
   const dur = item.isStream ? 'LIVE' : lunaDuration(item.length);
   const title = truncate(item.title, 200).replace(/\*/g, '\\*');
-  return `<:music1:1575843561285361825> **${title}** added to the queue ( ${dur} ) - at position ${position}`;
+  return `${config.emojis.music1} **${title}** added to the queue ( ${dur} ) - at position ${position}`;
 }
 
 // رد لما يتكتب `شغل` من غير اسم أغنية أو لينك.
 // النص ده بالظبط اللي المستخدم طلبه (إيموجي music2 في الأول).
 // Reply when `play` / `شغل` is typed with no song name or URL.
 // Exact text the user asked for (music2 emoji up front).
-const PLAY_HELP = '<:music2:1575843586338062386> Play commands.\n**``/play [Song title]``: play the song \n``/play [URL]``: play the provided link, Playlist, Soundcloud, Spotify,yt**';
+const PLAY_HELP = `${config.emojis.music2} Play commands.\n**\`\`/play [Song title]\`\`: play the song \n\`\`/play [URL]\`\`: play the provided link, Playlist, Soundcloud, Spotify,yt**`;
 
 // ضيف تراكات للقائمة وابعت الرد المناسب.
 // مهم: كل التراكات بتعدّي على makeItem الأول، لأن تراكات بحث/بلاي ليست

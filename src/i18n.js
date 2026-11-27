@@ -11,7 +11,11 @@
 //  messages live in the command files themselves.
 //  عشان تضيف رسالة جديدة: زوّدها هنا بالعربي والإنجليزي بنفس الاسم.
 //  To add a message: add it here in Arabic and English with the same key.
+//  (الإيموجيز music1/music3 اللي في filterTitle/filterCurrent من
+//  config.emojis — آيديهاتهم من .env، شوف config.js.)
 // ============================================================
+const { config } = require('./config');
+
 const ar = {
   joinVoiceFirst: 'لازم تدخل روم صوتي الأول.',
   notInMyChannel: (ch) => `لازم تكون معايا في <#${ch}>.`,
@@ -96,9 +100,9 @@ const ar = {
   filterUsage: (list) => `اختار فلتر: ${list}\nأو \`فلتر الغاء\` عشان ترجع الصوت عادي.`,
   filterSet: (name) => `🎛️ اتفعل فلتر **${name}**.`,
   filterReset: '🎛️ اتشالت كل الفلاتر.',
-  filterTitle: '<:music1:1575843561285361825> فلاتر الصوت',
+  filterTitle: `${config.emojis.music1} فلاتر الصوت`,
   filterPick: 'اختار فلتر…',
-  filterCurrent: (name) => `<:music3:1575843610270634064> الفلتر الحالي: **${name}**`,
+  filterCurrent: (name) => `${config.emojis.music3} الفلتر الحالي: **${name}**`,
   filterNone: 'بدون فلتر',
   filterOff: 'إيقاف الفلتر',
 
@@ -217,9 +221,9 @@ const en = {
   filterUsage: (list) => `Pick a filter: ${list}\nOr \`filter reset\` to go back to normal.`,
   filterSet: (name) => `🎛️ Filter **${name}** enabled.`,
   filterReset: '🎛️ All filters removed.',
-  filterTitle: '<:music1:1575843561285361825> Audio Filters',
+  filterTitle: `${config.emojis.music1} Audio Filters`,
   filterPick: 'Choose a filter…',
-  filterCurrent: (name) => `<:music3:1575843610270634064> Current filter: **${name}**`,
+  filterCurrent: (name) => `${config.emojis.music3} Current filter: **${name}**`,
   filterNone: 'No filter',
   filterOff: 'Turn off filter',
 

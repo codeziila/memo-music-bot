@@ -11,6 +11,7 @@
 const { needPlaying } = require('../../music/playback');
 const { truncate } = require('../../utils/format');
 const embeds = require('../../utils/embeds');
+const { config } = require('../../config');
 
 module.exports = {
   name: 'forceskip',
@@ -28,6 +29,6 @@ module.exports = {
     const title = truncate(cur.title, 200).replace(/\*/g, '\\*');
     const who = cur.requesterId ? `<@${cur.requesterId}>` : `<@${ctx.author.id}>`;
     await ctx.music.skip();
-    return ctx.send({ embeds: [embeds.info(`<:music1:1575843561285361825> Skipped ${title} - ${who}`)] });
+    return ctx.send({ embeds: [embeds.info(`${config.emojis.music1} Skipped ${title} - ${who}`)] });
   },
 };

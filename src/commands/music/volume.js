@@ -33,12 +33,12 @@ module.exports = {
       const n = Math.max(0, Math.min(10, Math.round((v / config.maxVolume) * 10)));
       return '█'.repeat(n) + '░'.repeat(10 - n);
     };
-    if (!ctx.args[0]) return ctx.send({ embeds: [embeds.info(`<:music3:1575843610270634064> **Volume: ${music.volume}%**\n${volBar(music.volume)}`)] });
+    if (!ctx.args[0]) return ctx.send({ embeds: [embeds.info(`${config.emojis.music3} **Volume: ${music.volume}%**\n${volBar(music.volume)}`)] });
     const v = toInt(ctx.args[0]);
     if (Number.isNaN(v) || v < 0 || v > config.maxVolume) return ctx.jerr(`Volume must be between 0 and ${config.maxVolume}!`);
     await music.setVolume(v);
     settings.update(ctx.guild.id, { volume: v });
     music.refreshNowPlaying();
-    return ctx.send({ embeds: [embeds.info(`<:music3:1575843610270634064> **Volume set to ${v}%**\n${volBar(v)}`)] });
+    return ctx.send({ embeds: [embeds.info(`${config.emojis.music3} **Volume set to ${v}%**\n${volBar(v)}`)] });
   },
 };
