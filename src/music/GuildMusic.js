@@ -196,11 +196,11 @@ class GuildMusic {
       const msg = data?.exception?.message;
       this.bot.log('track exception:', msg);
       // مفيش رسالة للمستخدم هنا — حدث الـ 'end' اللي جاي (loadFailed)
-      // هو اللي بيبلّغ النتيجة من onEnd (ملاحظة fallback أو خطأ واحد)،
-      // عشان المستخدم ميشوفش خطأ مخيف وبعدين الأغنية تشتغل من سبوتيفاي.
-      // No user message here — the following 'end' (loadFailed) reports
-      // the outcome from onEnd (fallback note or one error), so the user
-      // never sees a scary error followed by a successful Spotify fallback.
+      // هو اللي بيتصرف من onEnd: لو بديل اشتغل بيشتغل في صمت، ولو مفيش
+      // بديل نفع بيبعت خطأ واحد بس.
+      // No user message here — the following 'end' (loadFailed) is handled
+      // by onEnd: a working fallback plays silently, and only a total
+      // failure sends one error message.
     });
     player.on('stuck', () => {
       this.bot.log('track stuck, skipping');
@@ -253,24 +253,17 @@ class GuildMusic {
       this.bot.log('playTrack failed:', e.message);
       this.current = null;
       // playTrack نفسه فشل: جرّب البدائل (نتيجة يوتيوب اللي بعدها،
-      // وبعدين سبوتيفاي) قبل ما نستسلم ونروح للي بعدها.
-      // playTrack itself failed: try the fallbacks before giving up.
+      // وبعدين سبوتيفاي) من غير أي رسالة — لو بديل اشتغل، الأغنية
+      // بتشتغل على طول من غير ما يبان إن الأولى فشلت.
+      // playTrack itself failed: try the fallbacks silently — when a
+      // fallback plays, the song just plays with no failure notice.
       const fb = await this.tryFallback(item).catch(() => null);
       if (fb) {
-        this.sendText(this.fallbackNote(fb.source));
         return this.startTrack(fb.item);
       }
       this.sendText(this.t.trackError(truncate(item.title, 80)));
       return this.next();
     }
-  }
-
-  // رسالة لما بديل يشتغل بعد فشل الأغنية الأصلية.
-  // Note sent when a fallback plays after the original track failed.
-  fallbackNote(source) {
-    return source === 'spotify'
-      ? '⚠️ YouTube couldn\'t play this track — playing it from Spotify instead.'
-      : '⚠️ That video couldn\'t play — trying the next result.';
   }
 
   // لما أغنية تفشل في التحميل (probe error / loadFailed): جرّب البدائل
@@ -329,7 +322,8 @@ class GuildMusic {
     if (finished && reason === 'loadFailed') {
       const fb = await this.tryFallback(finished).catch(() => null);
       if (fb) {
-        this.sendText(this.fallbackNote(fb.source));
+        // بديل اشتغل — شغّله من غير أي رسالة (الفشل بيعدّي في صمت).
+        // A fallback worked — play it silently.
         return this.startTrack(fb.item);
       }
       // مفيش بديل نفع — بلّغ مرة واحدة وروح للي بعدها.
