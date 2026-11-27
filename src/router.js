@@ -162,6 +162,20 @@ async function buildContext(bot, message, parsed, targetVc) {
 async function handle(receiver, message) {
   if (message.author.bot || !message.guild || !message.content) return false;
 
+  // لو الرسالة فيها منشن لبوت تاني (مش أنا)، تجاهلها خالص — حتى لو
+  // المنشن في آخر الرسالة مش أولها (زي "pin @Quran" أو "unpin @thelifebeyond").
+  // الفحص اللي تحت بيشوف المنشن في أول الرسالة بس (/^<@...>/), فمنشن
+  // في الآخر كان بيتعدّى والبوت بيرد على أمر مش موجّه ليه.
+  // If the message mentions another bot (not me), ignore it completely —
+  // even when the mention is at the end, not the start (e.g. "pin @Quran").
+  // The check below only sees a mention at the start of the message, so a
+  // trailing mention slipped through and the bot answered a command meant for another bot.
+  if (message.mentions?.users) {
+    for (const [, user] of message.mentions.users) {
+      if (user.bot && user.id !== receiver.id) return false;
+    }
+  }
+
   const s = settings.get(message.guild.id);
 
   // --- 1) افهم الرسالة: منشن + اسم الأمر ---
