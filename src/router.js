@@ -241,8 +241,13 @@ async function handle(receiver, message) {
   } else {
     bot = pickBot(bots, message.guild.id, targetVc, cmd);
   }
+  // مفيش بوت فاضي ييجي للروم ده — اسكت خالص (من غير رد).
+  // قاعدة البوت: ميردّش على حد غير لما يكون معاه في الفويس،
+  // و"كل البوتات مشغولة" كانت بتتقال لحد البوت مش معاه أصلًا.
+  // No free bot can come to this channel — stay silent (no reply).
+  // Bot rule: never answer anyone unless it's with them in voice,
+  // and "all bots are busy" was being said to someone no bot is with.
   if (bot === 'BUSY') {
-    await message.reply({ content: '🚫 All bots are busy right now.' }).catch(() => {});
     return true;
   }
   if (!bot) return true;
