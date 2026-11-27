@@ -3,13 +3,20 @@
 //  ------------------------------------------------------------
 //  بحث / ابحث / دور / search
 //  ------------------------------------------------------------
-//  بيدور في يوتيوب وبيعرض أول 10 نتايج، وبعدين بترد برقم الأغنية
-//  اللي عايزها (1-10) خلال 30 ثانية — والبوت بيشغّلها.
-//  Searches YouTube and shows the top 10 results; reply with the
-//  number of the song you want (1-10) within 30 seconds and the bot
-//  plays it.
+//  بيدور في يوتيوب وبيعرض أول 10 نتايج في قائمة منسدلة (زي قائمة
+//  السور في بوت القرآن) — بتختار الأغنية من القائمة والبوت بيشغّلها.
+//  النتايج بتتحفظ في searchStore بمفتاح قصير، والقائمة بتشيل
+//  المفتاح في الـ customId (music:search:<id>) — والاختيار نفسه
+//  بيتعالج في buttons.js (handleSearchSelect).
+//  Searches YouTube and shows the top 10 results in a dropdown
+//  menu (like the Quran bot's surah menu) — pick a song from the
+//  menu and the bot plays it. Results are kept in searchStore under
+//  a short key, carried in the menu's customId (music:search:<id>);
+//  the pick itself is handled in buttons.js (handleSearchSelect).
 // ============================================================
-const { resolveIdentifier, enqueueTracks, EMOJI } = require('../../music/playback');
+const { ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { resolveIdentifier, EMOJI } = require('../../music/playback');
+const { saveSearch } = require('../../music/searchStore');
 const { formatDuration, truncate, escapeMd } = require('../../utils/format');
 
 module.exports = {
@@ -29,20 +36,22 @@ module.exports = {
     const res = await resolveIdentifier(ctx.bot, `ytsearch:${query}`);
     const list = res && res.loadType === 'search' ? res.data.slice(0, 10) : [];
     if (!list.length) return ctx.jerr('No results found.');
-    const text = `${EMOJI.searching} **Search results for: ${truncate(query, 200)}**\n` +
-      list.map((tr, i) => `\`${i + 1}.\` ${escapeMd(truncate(tr.info.title, 70))} \`${tr.info.isStream ? 'LIVE' : formatDuration(tr.info.length)}\``).join('\n') +
-      `\nReply with the number of the song you want (1-10). You have 30 seconds.`;
-    await ctx.send({ content: text });
-    try {
-      const collected = await ctx.channel.awaitMessages({
-        filter: (m) => m.author.id === ctx.author.id && /^\d+$/.test(m.content.trim()),
-        max: 1, time: 30000, errors: ['time'],
-      });
-      const n = Number(collected.first().content.trim());
-      if (n < 1 || n > list.length) return ctx.jerr('That is not a valid number!');
-      return enqueueTracks(ctx, [list[n - 1]]);
-    } catch {
-      return ctx.jwarn('Search timed out — no song was selected.');
-    }
+    const id = saveSearch(list, query, ctx.author.id);
+    const menu = new StringSelectMenuBuilder()
+      .setCustomId(`music:search:${id}`)
+      .setPlaceholder('🎵 اختر أغنية...')
+      .addOptions(list.map((tr, i) => ({
+        label: truncate(tr.info.title, 100),
+        value: String(i),
+        description: truncate(
+          `${tr.info.isStream ? 'LIVE' : formatDuration(tr.info.length)}${tr.info.author ? ` — ${tr.info.author}` : ''}`,
+          100,
+        ),
+      })));
+    const row = new ActionRowBuilder().addComponents(menu);
+    await ctx.send({
+      content: `${EMOJI.searching} **Search results for: ${truncate(query, 200)}**\nاختار أغنية من القائمة 👇 (القائمة بتخلص بعد دقيقة)`,
+      components: [row],
+    });
   },
 };

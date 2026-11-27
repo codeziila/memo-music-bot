@@ -13,7 +13,7 @@ const { config, defaultBotPrefix } = require('./config');
 const pins = require('./store/pins');
 const { GuildMusic } = require('./music/GuildMusic');
 const router = require('./router');
-const { handleButton, handleFilterSelect } = require('./buttons');
+const { handleButton, handleFilterSelect, handleSearchSelect } = require('./buttons');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -203,6 +203,8 @@ class BotInstance {
         handleButton(this, interaction).catch((e) => this.log('button error:', e.message));
       } else if (interaction.isStringSelectMenu() && interaction.customId === 'music:filter') {
         handleFilterSelect(this, interaction).catch((e) => this.log('filter select error:', e.message));
+      } else if (interaction.isStringSelectMenu() && interaction.customId.startsWith('music:search:')) {
+        handleSearchSelect(this, interaction).catch((e) => this.log('search select error:', e.message));
       }
     });
 

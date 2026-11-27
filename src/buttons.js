@@ -17,6 +17,9 @@
 const { MessageFlags } = require('discord.js');
 const { config } = require('./config');
 const i18n = require('./i18n');
+const embeds = require('./utils/embeds');
+const { enqueueTracks, EMOJI } = require('./music/playback');
+const { getSearch, deleteSearch } = require('./music/searchStore');
 const { formatDuration, truncate, escapeMd } = require('./utils/format');
 
 // استقبل ضغطة زرار من رسالة موسيقى (customId بيبدأ بـ "music:").
@@ -112,4 +115,55 @@ async function handleFilterSelect(bot, interaction) {
   return interaction.update(buildFilterPicker(music, music.lang || 'ar')).catch(() => {});
 }
 
-module.exports = { handleButton, handleFilterSelect };
+// استقبل اختيار أغنية من قائمة نتايج البحث (customId = "music:search:<id>").
+// Handle a song pick from a search-results menu (customId "music:search:<id>").
+// القائمة للي عمل البحث بس، ولازم يكون في روم البوت. الاختيار بيشغّل
+// الأغنية (بنفس بدائل فشل التشغيل بتاعة البحث بالاسم: باقي النتايج +
+// سبوتيفاي)، وبيحدّث رسالة البحث نفسها عشان القائمة متتضغطش تاني.
+// Only the searcher can pick, and they must be in the bot's voice
+// channel. The pick plays the song (with the same name-search failure
+// fallbacks: the other results + Spotify) and updates the search
+// message itself so the menu can't be pressed again.
+async function handleSearchSelect(bot, interaction) {
+  const id = interaction.customId.split(':')[2];
+  const entry = getSearch(id);
+  const eph = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
+  if (!entry) return eph('البحث ده خلص — ابحث تاني.');
+  if (interaction.user.id !== entry.authorId) return eph('القائمة دي للي عمل البحث بس.');
+  const idx = Number(interaction.values?.[0]);
+  const track = entry.tracks[idx];
+  if (!track) return eph('حصلت مشكلة.');
+  const userVc = interaction.member?.voice?.channelId;
+  if (!userVc) return eph('لازم تكون في روم صوتي عشان تشغّل.');
+  const music = bot.getMusic(interaction.guildId);
+  if (music?.channelId && music.channelId !== userVc) return eph(`البوت في روم تانية — ادخل <#${music.channelId}> الأول.`);
+  await interaction.deferUpdate().catch(() => {});
+  // ctx مصغّر للـ interaction (enqueueTracks بيحتاج نفس شكل ctx بتاع الـ router).
+  // A minimal ctx for the interaction (enqueueTracks expects the router's ctx shape).
+  const ctx = {
+    bot,
+    guild: interaction.guild,
+    channel: interaction.channel,
+    member: interaction.member,
+    author: interaction.user,
+    music,
+    targetVoiceId: userVc,
+    send: (payload) => interaction.channel.send(payload).catch(() => null),
+    ok: (text) => interaction.channel.send({ embeds: [embeds.info(text)] }).catch(() => null),
+    err: (text) => interaction.followUp({ embeds: [embeds.error(text)], flags: MessageFlags.Ephemeral }).catch(() => {}),
+    jok: (text) => interaction.channel.send({ embeds: [embeds.info(`${EMOJI.success} ${text}`)] }).catch(() => null),
+    jwarn: (text) => interaction.channel.send({ embeds: [embeds.info(`${EMOJI.warning} ${text}`)] }).catch(() => null),
+    jerr: (text) => interaction.followUp({ embeds: [embeds.error(text)], flags: MessageFlags.Ephemeral }).catch(() => {}),
+  };
+  const others = entry.tracks.filter((_, i) => i !== idx);
+  await enqueueTracks(ctx, [track], { searchQuery: entry.query, alternatives: others }).catch(() => false);
+  deleteSearch(id);
+  return interaction
+    .editReply({
+      content: `${EMOJI.searching} **Search results for: ${truncate(entry.query, 200)}**\n🎵 اخترت: **${escapeMd(truncate(track.info.title, 100))}**`,
+      components: [],
+    })
+    .catch(() => {});
+}
+
+module.exports = { handleButton, handleFilterSelect, handleSearchSelect };

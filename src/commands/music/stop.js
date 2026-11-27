@@ -8,11 +8,13 @@
 //  Stops the music instantly and clears the whole queue, but the bot
 //  stays in the channel (it doesn't leave). Reply is a sky-blue
 //  embed with the music2 emoji.
-//  ملحوظة: "leave" بالإنجليزي بيوصل للأمر ده (يعني بيوقف الموسيقى)،
-//  أما "اطلع" بالعربي فهي أمر تاني (leave.js) بيطلّع البوت من الروم.
-//  Note: English "leave" reaches THIS command (stops the music),
-//  while Arabic "اطلع" is a different command (leave.js) that makes
-//  the bot leave the channel.
+//  ملحوظة: "leave" بالإنجليزي بيوصل للأمر ده (يعني بيوقف الموسيقى).
+//  أمر الخروج من الروم ("اطلع") اتشال من البوت (2026-11-28) — البوت
+//  المثبت مبيطلعش، واللي اتنده بـ come بيطلع لوحده بعد 60 ثانية فاضي.
+//  Note: English "leave" reaches THIS command (stops the music).
+//  The leave-the-channel command ("اطلع") was removed (2026-11-28) —
+//  a pinned bot never leaves, and a come-summoned one leaves by itself
+//  after 60 idle seconds.
 // ============================================================
 const embeds = require('../../utils/embeds');
 const { config } = require('../../config');

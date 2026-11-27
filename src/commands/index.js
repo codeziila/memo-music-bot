@@ -50,7 +50,6 @@ const commands = [
   require('./music/replay'),
   require('./music/filter'),
   require('./music/join'),
-  require('./music/leave'),
 
   // ----- إدارة السيرفر (Admin) -----
   require('./admin/pin'),
