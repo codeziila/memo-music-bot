@@ -9,6 +9,7 @@
 //  It talks to NodeLink through Shoukaku (the player).
 // ============================================================
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
+const { Routes } = require('discord-api-types/v10');
 const { config } = require('../config');
 const pins = require('../store/pins');
 const i18n = require('../i18n');
@@ -62,6 +63,7 @@ class GuildMusic {
     this.stopped = false;
     this.intentionalLeave = false;
     this.connecting = null;
+    this._statusChain = Promise.resolve(); // ترتيب تحديثات حالة الروم
   }
 
   // وضع التكرار بأسلوب JMusicBot: off | single | all
@@ -177,6 +179,11 @@ class GuildMusic {
       this.attach(player);
       await player.setGlobalVolume(this.volume).catch(() => {});
       if (this.filter !== 'none' && FILTERS[this.filter]) await player.setFilters(FILTERS[this.filter]).catch(() => {});
+      // دخل الروم — الحالة الافتراضية: اسم السيرفر + إيموجي faty
+      // (لما أغنية تبدأ، حدث الـ 'start' هيحدّثها لاسم الأغنية).
+      // Joined the channel — default status: guild name + faty emoji
+      // (the 'start' event updates it to the song title when one plays).
+      this.updateVoiceStatus().catch(() => {});
       return player;
     } finally {
       this.bot.unreserve(this.guildId);
@@ -189,6 +196,9 @@ class GuildMusic {
     if (this.player === player) return;
     this.player = player;
     player.on('start', () => {
+      // أغنية بدأت فعلاً — حدّث حالة الروم لاسم الأغنية + إيموجي faty.
+      // A track actually started — update the channel status to the song + faty emoji.
+      this.updateVoiceStatus().catch(() => {});
       if (!config.npAuto) return; // رسالة Now Playing التلقائية مقفولة افتراضيًا
       this.sendNowPlaying().catch(() => {});
     });
@@ -215,8 +225,53 @@ class GuildMusic {
     });
   }
 
+  // ===== حالة قناة الصوت — Voice channel status =====
+  // الحالة بتظهر تحت اسم الروم: لو فيه أغنية شغالة بيكتب اسمها،
+  // ولو مفيش بيكتب اسم السيرفر — وفي الحالتين جنبها إيموجي faty
+  // اللي Mimo بعته (مش إيموجي السماء).
+  // التحديثات بتتنفذ بالترتيب (سلسلة) عشان آخر تحديث هو اللي يفضل
+  // ومفيش تحديث قديم ييجي بعد الجديد ويغطي عليه.
+  // The voice channel status (shown under the channel name): the
+  // song title while playing, the guild name when idle — both with
+  // Mimo's faty emoji (not the sky emojis). Updates run in order so
+  // the latest one wins.
+  async setVoiceStatus(status, channelId) {
+    const id = channelId || this.channelId;
+    if (!id) return;
+    const run = async () => {
+      try {
+        await this.bot.client.rest.put(Routes.channelVoiceStatus(id), { body: { status } });
+      } catch (e) {
+        this.bot.log('voice status failed:', e.message);
+      }
+    };
+    this._statusChain = this._statusChain.then(run, run);
+    return this._statusChain;
+  }
+
+  // حدّث الحالة حسب الوضع الحالي: أغنية شغالة ولا فاضي.
+  // Update the status for the current state: playing or idle.
+  async updateVoiceStatus() {
+    const emoji = config.statusEmoji || '🎵';
+    if (this.current) {
+      const title = this.current.title || 'Unknown';
+      await this.setVoiceStatus(truncate(`${title} ${emoji}`, 480));
+    } else {
+      const name = this.guild?.name;
+      if (!name) return;
+      await this.setVoiceStatus(truncate(`${name} ${emoji}`, 480));
+    }
+  }
+
+  // امسح الحالة (لما البوت يخرج من الروم).
+  // Clear the status (when the bot leaves the channel).
+  async clearVoiceStatus(channelId) {
+    await this.setVoiceStatus(null, channelId);
+  }
+
   async leaveVoice() {
     this.intentionalLeave = true;
+    const channelId = this.channelId;
     this.player = null;
     this.current = null;
     try {
@@ -224,6 +279,7 @@ class GuildMusic {
     } catch {
       /* ignore */
     }
+    if (channelId) await this.clearVoiceStatus(channelId).catch(() => {});
   }
 
   // ===== التشغيل — Playback =====
@@ -412,6 +468,11 @@ class GuildMusic {
         this.bot.log('autoplaylist failed:', e.message);
       }
     }
+    // القائمة خلصت ومفيش بلاي ليست تلقائية — رجّع الحالة الافتراضية
+    // (اسم السيرفر + إيموجي faty).
+    // Queue ended with no autoplaylist — back to the default status
+    // (guild name + faty emoji).
+    await this.updateVoiceStatus().catch(() => {});
     if (!this.pinned) this.scheduleIdleLeave();
   }
 
@@ -431,6 +492,9 @@ class GuildMusic {
     this.stopped = true;
     this.current = null;
     if (this.alive) await Promise.race([this.player.stopTrack().catch(() => {}), sleep(500)]);
+    // وقف التشغيل — رجّع الحالة الافتراضية (اسم السيرفر + إيموجي faty).
+    // Stopped — back to the default status (guild name + faty emoji).
+    await this.updateVoiceStatus().catch(() => {});
   }
 
   // ارجع للأغنية اللي فاتت (من السجل).
@@ -557,6 +621,7 @@ class GuildMusic {
     this.current = null;
     this.clearIdle();
     this.disableNowPlaying();
+    await this.clearVoiceStatus().catch(() => {});
     await this.bot.shoukaku.leaveVoiceChannel(this.guildId).catch(() => {});
     this.intentionalLeave = false;
     if (this.pinned) {

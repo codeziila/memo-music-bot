@@ -111,6 +111,16 @@ const emojis = {
   music3Id: emojiIds.music3,
 };
 
+// ---------- إيموجي حالة الروم — Voice channel status emoji ----------
+// الإيموجي اللي بيتحط جنب اسم الأغنية / اسم السيرفر في حالة الروم
+// الصوتي — إيموجي faty اللي Mimo بعته (مش إيموجي السماء).
+// بيتقري من .env (STATUS_EMOJI_ID)، والافتراضي هو آيدي إيموجي faty.
+// The emoji shown next to the song / guild name in the voice channel
+// status — Mimo's faty emoji (not the sky emojis). Read from .env
+// (STATUS_EMOJI_ID), defaulting to the faty emoji ID.
+const statusEmojiId = emojiId('STATUS_EMOJI_ID', '1573942696559513654');
+const statusEmoji = `<:faty:${statusEmojiId}>`;
+
 // ---------- الإعدادات — The settings object ----------
 const config = {
   // سيرفرات الصوت (NodeLink) — Audio servers (NodeLink)
@@ -146,6 +156,9 @@ const config = {
   // Sky emojis (music1/2/3) — from .env (EMOJI_MUSIC*_ID), defaulting
   // to Mimo's server emoji IDs. See the emojis section above.
   emojis,
+  // إيموجي حالة الروم الصوتي (faty) — من .env (STATUS_EMOJI_ID).
+  // Voice channel status emoji (faty) — from .env (STATUS_EMOJI_ID).
+  statusEmoji,
   // الحالة اللي بتظهر عند التشغيل — متثبّتة "By Memo" ومش بتتقري من .env.
   // Startup status — hardcoded to "By Memo", never read from .env.
   status: 'By Memo',
